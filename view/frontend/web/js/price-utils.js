@@ -8,7 +8,7 @@ define([
 ], function ($, _) {
     'use strict';
 
-    var globalPriceFormat = {
+    let globalPriceFormat = {
         requiredPrecision: 2,
         integerRequired: 1,
         decimalSymbol: ',',
@@ -28,7 +28,7 @@ define([
 
     function formatPriceLocale(amount, format, isShowSign)
     {
-        var s = '',
+        let s = '',
             precision, pattern, locale, r;
 
         format = _.extend(globalPriceFormat, format);
@@ -56,7 +56,7 @@ define([
      * @return {String}              Formatted value
      */
     function formatPrice(amount, format, isShowSign) {
-        var s = '',
+        let s = '',
             precision, integerRequired, decimalSymbol, groupSymbol, groupLength, pattern, i, pad, j, re, r, am;
 
         format = _.extend(globalPriceFormat, format);
@@ -118,7 +118,7 @@ define([
      * @returns {undefined|String}
      */
     function findOptionId(element) {
-        var re, id, name;
+        let re, id, name;
 
         if (!element) {
             return id;

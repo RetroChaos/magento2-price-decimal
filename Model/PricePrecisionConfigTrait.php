@@ -1,30 +1,24 @@
 <?php
-
 declare(strict_types=1);
 
-namespace Lillik\PriceDecimal\Model;
+namespace RetroChaos\PriceDecimal\Model;
 
 trait PricePrecisionConfigTrait
 {
+	private ConfigInterface $moduleConfig;
 
+	protected function getConfig(): ConfigInterface
+	{
+		return $this->moduleConfig;
+	}
 
-    /**
-     * @return \Lillik\PriceDecimal\Model\ConfigInterface
-     */
-    public function getConfig()
-    {
-        return $this->moduleConfig;
-    }
+	protected function getPricePrecision(): int
+	{
+		return $this->moduleConfig->getPricePrecision();
+	}
 
-    /**
-     * @return int|mixed
-     */
-    public function getPricePrecision()
-    {
-        if ($this->getConfig()->canShowPriceDecimal()) {
-            return $this->getConfig()->getPricePrecision();
-        }
-
-        return 0;
-    }
+	protected function canShowPriceDecimal(): bool
+	{
+		return $this->moduleConfig->canShowPriceDecimal();
+	}
 }

@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Lillik\PriceDecimal\Block\System\Config\Form\Field;
+namespace RetroChaos\PriceDecimal\Block\System\Config\Form\Field;
 
+use Magento\Framework\Option\ArrayInterface;
 
-class Precision implements \Magento\Framework\Option\ArrayInterface
+class Precision implements ArrayInterface
 {
 
     /**
@@ -13,7 +14,7 @@ class Precision implements \Magento\Framework\Option\ArrayInterface
      *
      * @return array Format: array(array('value' => '<value>', 'label' => '<label>'), ...)
      */
-    public function toOptionArray()
+    public function toOptionArray(): array
     {
         return [
             ['value' => 1, 'label' => __('1')],

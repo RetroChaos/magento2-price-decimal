@@ -1,81 +1,54 @@
 <?php
-
 declare(strict_types=1);
 
-namespace Lillik\PriceDecimal\Model;
+namespace RetroChaos\PriceDecimal\Model;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 
 class Config implements ConfigInterface
 {
+	/** @var string */
+	public const XML_PATH_PRICE_PRECISION =
+		'catalog_price_decimal/general/price_precision';
 
-    const XML_PATH_PRICE_PRECISION
-        = 'catalog_price_decimal/general/price_precision';
+	/** @var string */
+	public const XML_PATH_CAN_SHOW_PRICE_DECIMAL =
+		'catalog_price_decimal/general/can_show_decimal';
 
-    const XML_PATH_CAN_SHOW_PRICE_DECIMAL
-        = 'catalog_price_decimal/general/can_show_decimal';
+	public function __construct(
+		private readonly ScopeConfigInterface $scopeConfig
+	) {
+	}
 
-    const XML_PATH_GENERAL_ENABLE
-        = 'catalog_price_decimal/general/enable';
+	public function getScopeConfig(): ScopeConfigInterface
+	{
+		return $this->scopeConfig;
+	}
 
-    /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    private $scopeConfig;
+	public function isEnable(): bool
+	{
+		// keep behaviour you already had, just cast to bool
+		return (bool) $this->getScopeConfig()->isSetFlag(
+			'catalog_price_decimal/general/active'
+		);
+	}
 
-    /**
-     * @param ScopeConfigInterface $scopeConfig
-     */
-    public function __construct(
-        ScopeConfigInterface $scopeConfig
-    ) {
+	public function canShowPriceDecimal(): bool
+	{
+		return (bool) $this->getScopeConfig()->isSetFlag(
+			self::XML_PATH_CAN_SHOW_PRICE_DECIMAL
+		);
+	}
 
-        $this->scopeConfig = $scopeConfig;
-    }
+	public function getPricePrecision(): int
+	{
+		$value = (string) $this->getScopeConfig()->getValue(
+			self::XML_PATH_PRICE_PRECISION
+		);
 
-    /**
-     * @return \Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    public function getScopeConfig()
-    {
-        return $this->scopeConfig;
-    }
+		// normalise & guard against weird config entries
+		$precision = (int) $value;
 
-    /**
-     * Return Config Value by XML Config Path
-     * @param $path
-     * @param $scopeType
-     *
-     * @return mixed
-     */
-    public function getValueByPath($path, $scopeType = 'website')
-    {
-        return $this->getScopeConfig()->getValue($path, $scopeType);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function isEnable()
-    {
-        return $this->getValueByPath(self::XML_PATH_GENERAL_ENABLE, 'website');
-    }
-
-    /**
-     * @return mixed
-     */
-    public function canShowPriceDecimal()
-    {
-        return $this->getValueByPath(self::XML_PATH_CAN_SHOW_PRICE_DECIMAL, 'website');
-    }
-
-    /**
-     * Return Price precision from store config
-     *
-     * @return mixed
-     */
-    public function getPricePrecision()
-    {
-        return $this->getValueByPath(self::XML_PATH_PRICE_PRECISION, 'website');
-    }
+		return max($precision, 0);
+	}
 }

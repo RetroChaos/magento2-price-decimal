@@ -2,85 +2,96 @@
 
 declare(strict_types=1);
 
-namespace Lillik\PriceDecimal\Model\Plugin;
+namespace RetroChaos\PriceDecimal\Model\Plugin;
+
+use Magento\Directory\Model\PriceCurrency as BasePriceCurrency;
 
 class PriceCurrency extends PriceFormatPluginAbstract
 {
+	public function beforeFormat(BasePriceCurrency $subject, ...$args): array
+	{
+		if (!$this->getConfig()->isEnable()) {
+			return $args;
+		}
 
-    /**
-     * {@inheritdoc}
-     */
-    public function beforeFormat(
-        \Magento\Directory\Model\PriceCurrency $subject,
-        ...$args
-    ) {
-        if ($this->getConfig()->isEnable()) {
-            // add the optional arg
-            if (!isset($args[1])) {
-                $args[1] = true;
-            }
-            // Precision argument
-            $args[2] = $this->getPricePrecision();
-        }
+		// ensure includeContainer (index 1) is defined
+		if (!array_key_exists(1, $args)) {
+			$args[1] = true;
+		}
 
-        return $args;
-    }
+		$precision = $this->getPricePrecision();
 
-    /**
-     * @param \Magento\Directory\Model\PriceCurrency $subject
-     * @param callable $proceed
-     * @param $price
-     * @param array ...$args
-     * @return float
-     */
-    public function aroundRound(
-        \Magento\Directory\Model\PriceCurrency $subject,
-        callable $proceed,
-        $price,
-        ...$args
-    ) {
-        if ($this->getConfig()->isEnable()) {
-            $price = (float) $price;
-            return round($price, (int) $this->getPricePrecision());
-        } else {
-            return $proceed($price);
-        }
-    }
+		// only override precision when it's not explicitly set
+		if (!array_key_exists(2, $args) || $args[2] === null) {
+			$args[2] = $precision;
+		}
 
-    /**
-     * @param \Magento\Directory\Model\PriceCurrency $subject
-     * @param array ...$args
-     * @return array
-     */
-    public function beforeConvertAndFormat(
-        \Magento\Directory\Model\PriceCurrency $subject,
-        ...$args
-    ) {
-        if ($this->getConfig()->isEnable()) {
-            // add the optional args
-            $args[1] = isset($args[1]) ? $args[1] : null;
-            $args[2] = intval($this->getPricePrecision());
-        }
+		return $args;
+	}
 
-        return $args;
-    }
+	/**
+	 * @param BasePriceCurrency $subject
+	 * @param callable $proceed
+	 * @param $price
+	 * @param array ...$args
+	 * @return float
+	 */
+	public function aroundRound(
+		BasePriceCurrency $subject,
+		callable $proceed,
+		$price,
+		...$args
+	): float
+	{
+		if (!$this->getConfig()->isEnable()) {
+			return $proceed($price, ...$args);
+		}
 
-    /**
-     * @param \Magento\Directory\Model\PriceCurrency $subject
+		return round((float) $price, $this->getPricePrecision());
+	}
+
+	/**
+     * @param BasePriceCurrency $subject
      * @param array ...$args
      * @return array
      */
-    public function beforeConvertAndRound(
-        \Magento\Directory\Model\PriceCurrency $subject,
-        ...$args
-    ) {
-        if ($this->getConfig()->isEnable()) {
-            //add optional args
-            $args[1] = isset($args[1]) ? $args[1] : null;
-            $args[2] = isset($args[2]) ? $args[2] : null;
-            $args[3] = $this->getPricePrecision();
-        }
+	public function beforeConvertAndFormat(BasePriceCurrency $subject, ...$args): array
+	{
+		if (!$this->getConfig()->isEnable()) {
+			return $args;
+		}
 
-        return $args;
-    }
+		if (!array_key_exists(1, $args)) {
+			$args[1] = true;
+		}
+
+		$precision = $this->getPricePrecision();
+
+		if (!array_key_exists(2, $args) || $args[2] === null) {
+			$args[2] = $precision;
+		}
+
+		return $args;
+	}
+
+
+	/**
+     * @param BasePriceCurrency $subject
+     * @param array ...$args
+     * @return array
+     */
+	public function beforeConvertAndRound(BasePriceCurrency $subject, ...$args): array
+	{
+		if (!$this->getConfig()->isEnable()) {
+			return $args;
+		}
+
+		$precision = $this->getPricePrecision();
+
+		if (!array_key_exists(1, $args) || $args[1] === null) {
+			$args[1] = $precision;
+		}
+
+		return $args;
+	}
 }

@@ -2,21 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Lillik\PriceDecimal\Model\Plugin;
+namespace RetroChaos\PriceDecimal\Model\Plugin;
 
-use Lillik\PriceDecimal\Model\ConfigInterface;
-use Lillik\PriceDecimal\Model\PricePrecisionConfigTrait;
+use RetroChaos\PriceDecimal\Model\ConfigInterface;
+use RetroChaos\PriceDecimal\Model\PricePrecisionConfigTrait;
 
 abstract class PriceFormatPluginAbstract
 {
 
     use PricePrecisionConfigTrait;
 
-    /** @var ConfigInterface  */
-    protected $moduleConfig;
-
     /**
-     * @param \Lillik\PriceDecimal\Model\ConfigInterface $moduleConfig
+     * @param ConfigInterface $moduleConfig
      */
     public function __construct(
         ConfigInterface $moduleConfig

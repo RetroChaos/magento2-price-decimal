@@ -1,39 +1,27 @@
 <?php
-
 declare(strict_types=1);
 
-namespace Lillik\PriceDecimal\Model;
+namespace RetroChaos\PriceDecimal\Model;
 
-use Magento\Framework\CurrencyInterface;
+use Magento\Framework\App\CacheInterface;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Currency as MagentoCurrency;
-use Lillik\PriceDecimal\Model\ConfigInterface;
+use Magento\Framework\CurrencyInterface;
 
-/** @method getPricePrecision */
 class Currency extends MagentoCurrency implements CurrencyInterface
 {
+	use PricePrecisionConfigTrait;
 
-    use PricePrecisionConfigTrait;
+	public function __construct(
+		CacheInterface $appCache,
+		$options = null,
+		$locale = null,
+		?ConfigInterface $moduleConfig = null
+	) {
+		parent::__construct($appCache, $options, $locale);
 
-    /**
-     * @var \Lillik\PriceDecimal\Model\ConfigInterface
-     */
-    public $moduleConfig;
-
-    /**
-     * Currency constructor.
-     *
-     * @param \Magento\Framework\App\CacheInterface      $appCache
-     * @param \Lillik\PriceDecimal\Model\ConfigInterface $moduleConfig
-     * @param null                                       $options
-     * @param null                                       $locale
-     */
-    public function __construct(
-        \Magento\Framework\App\CacheInterface $appCache,
-        ConfigInterface $moduleConfig,
-        $options = null,
-        $locale = null
-    ) {
-        $this->moduleConfig = $moduleConfig;
-        parent::__construct($appCache, $options, $locale);
-    }
+		// DI will normally inject this; fallback keeps it from exploding
+		$this->moduleConfig = $moduleConfig ?? ObjectManager::getInstance()
+			->get(ConfigInterface::class);
+	}
 }

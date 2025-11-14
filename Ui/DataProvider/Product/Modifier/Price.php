@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Lillik\PriceDecimal\Ui\DataProvider\Product\Modifier;
+namespace RetroChaos\PriceDecimal\Ui\DataProvider\Product\Modifier;
 
 use Magento\Catalog\Model\Locator\LocatorInterface;
 use Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\AbstractModifier;
 use Magento\Framework\App\Request\DataPersistorInterface;
-use Magento\Framework\Pricing\PriceCurrencyInterface;
-use Lillik\PriceDecimal\Model\ConfigInterface;
-use Lillik\PriceDecimal\Model\PricePrecisionConfigTrait;
+use RetroChaos\PriceDecimal\Model\ConfigInterface;
+use RetroChaos\PriceDecimal\Model\PricePrecisionConfigTrait;
 
 class Price extends AbstractModifier
 {
@@ -18,15 +17,15 @@ class Price extends AbstractModifier
     /**
      * @var LocatorInterface
      */
-    private $locator;
+    private LocatorInterface $locator;
     /**
      * @var DataPersistorInterface
      */
-    private $dataPersistor;
+    private DataPersistorInterface $dataPersistor;
     /**
      * @var ConfigInterface
      */
-    private $moduleConfig;
+    private ConfigInterface $moduleConfig;
 
     /**
      * Price constructor.
@@ -46,7 +45,7 @@ class Price extends AbstractModifier
         $this->moduleConfig = $moduleConfig;
     }
 
-    public function modifyData( array $data )
+    public function modifyData(array $data): array
     {
         if ($this->moduleConfig->isEnable()) {
           if (!$this->locator->getProduct()->getId() && $this->dataPersistor->get('catalog_product')) {
@@ -62,7 +61,7 @@ class Price extends AbstractModifier
     /**
      * @inheritDoc
      */
-    public function modifyMeta( array $meta )
+    public function modifyMeta(array $meta): array
     {
         return $meta;
     }
@@ -74,9 +73,9 @@ class Price extends AbstractModifier
      * @return string
      * @since 101.0.0
      */
-    protected function formatPrice($value)
+    protected function formatPrice(mixed $value): string
     { 
-        return $value !== null ? number_format((float)$value, (int) $this->getPricePrecision(), '.', '') : '';
+        return $value !== null ? number_format((float)$value, (int)$this->getPricePrecision(), '.', '') : '';
     }
 
     /**
@@ -85,7 +84,7 @@ class Price extends AbstractModifier
      * @param array $data
      * @return array
      */
-    private function resolvePersistentData(array $data)
+    private function resolvePersistentData(array $data): array
     {
         $persistentData = (array)$this->dataPersistor->get('catalog_product');
         $this->dataPersistor->clear('catalog_product');

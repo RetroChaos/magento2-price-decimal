@@ -2,69 +2,140 @@
 
 declare(strict_types=1);
 
-namespace Lillik\PriceDecimal\Test\Unit\Plugin\Model;
+namespace RetroChaos\PriceDecimal\Test\Unit\Plugin\Model;
 
-use Lillik\PriceDecimal\Model\ConfigInterface;
-use Lillik\PriceDecimal\Model\Plugin\PriceCurrency;
+use Magento\Directory\Model\PriceCurrency as MagentoPriceCurrency;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use RetroChaos\PriceDecimal\Model\ConfigInterface;
+use RetroChaos\PriceDecimal\Model\Plugin\PriceCurrency;
 
-class PriceCurrencyTest extends \PHPUnit\Framework\TestCase
+class PriceCurrencyTest extends TestCase
 {
+	/** @var MagentoPriceCurrency&MockObject */
+	private MagentoPriceCurrency $priceCurrencyMock;
 
-    private $closureMock;
+	protected function setUp(): void
+	{
+		$this->priceCurrencyMock = $this->getMockBuilder(MagentoPriceCurrency::class)
+			->disableOriginalConstructor()
+			->getMock();
+	}
 
-    private $priceCurrencyMock;
+	/**
+	 * Helper to create a plugin instance with a mocked config.
+	 *
+	 * @param bool $enabled
+	 * @param int  $precision
+	 * @return PriceCurrency
+	 */
+	private function createPlugin(bool $enabled, int $precision): PriceCurrency
+	{
+		/** @var ConfigInterface&MockObject $configMock */
+		$configMock = $this->getMockBuilder(ConfigInterface::class)
+			->onlyMethods(['isEnable', 'getScopeConfig', 'canShowPriceDecimal', 'getPricePrecision'])
+			->getMock();
 
-    protected function setUp()
-    {
-        $this->closureMock = function (...$args) {
-            return number_format($args[0], $args[2]);
-        };
+		$configMock->method('isEnable')->willReturn($enabled);
+		$configMock->method('canShowPriceDecimal')->willReturn(true);
+		$configMock->method('getPricePrecision')->willReturn($precision);
 
-        $this->priceCurrencyMock = $this->getMockBuilder('Magento\Directory\Model\PriceCurrency')
-            ->disableOriginalConstructor()
-            ->getMock();
-    }
+		$objectManager = new ObjectManager($this);
 
-    /**
-     *
-     */
-    public function testAroundFormat()
-    {
+		/** @var PriceCurrency $plugin */
+		$plugin = $objectManager->getObject(
+			PriceCurrency::class,
+			['moduleConfig' => $configMock]
+		);
 
-        $price = 22.54;
-        $args = [
-            $price,
-            true,
-            2
-        ];
+		return $plugin;
+	}
 
-        $pricePrecision = 2;
+	public function testBeforeFormatAppliesConfiguredPrecisionWhenEnabled(): void
+	{
+		$plugin        = $this->createPlugin(true, 3);
+		$price         = 22.54321;
 
-        $configMock = $this->getMockBuilder(
-            ConfigInterface::class
-        )->disableOriginalConstructor()
-            ->setMethods(['isEnable', 'getScopeConfig', 'canShowPriceDecimal', 'getPricePrecision'])
-            ->getMock();
+		// emulate arguments to PriceCurrency::format($price, $includeContainer, $precision, ...)
+		$args = [$price, true, null];
 
-        $configMock->expects($this->any())->method('isEnable')->willReturn(1);
-        $configMock->expects($this->any())->method('canShowPriceDecimal')->willReturn(1);
-        $configMock->expects($this->any())->method('getPricePrecision')->willReturn($pricePrecision);
+		$resultArgs = $plugin->beforeFormat($this->priceCurrencyMock, ...$args);
 
-        $objectManager = new ObjectManager($this);
-        $model = $objectManager->getObject(
-            PriceCurrency::class,
-            [
-                'moduleConfig' => $configMock
-            ]
-        );
+		// index 2 should now be our configured precision 3
+		$this->assertSame(3, $resultArgs[2]);
+	}
 
-        $result = $model->aroundFormat(
-            $this->priceCurrencyMock,
-            $this->closureMock,
-            ...$args
-        );
+	public function testBeforeFormatDoesNothingWhenDisabled(): void
+	{
+		$plugin        = $this->createPlugin(false, 4);
+		$price         = 22.54321;
+		$args          = [$price, true, 2];
 
-        $this->assertEquals(number_format($args[0], $args[2]), $result);
-    }
+		$resultArgs = $plugin->beforeFormat($this->priceCurrencyMock, ...$args);
+
+		// when disabled, the plugin should just return the original args
+		$this->assertSame($args, $resultArgs);
+	}
+
+	public function testBeforeConvertAndRoundInjectsPrecisionWhenEnabled(): void
+	{
+		$plugin    = $this->createPlugin(true, 4);
+		$price     = 10.9876;
+		$args      = [$price, null];
+
+		$resultArgs = $plugin->beforeConvertAndRound($this->priceCurrencyMock, ...$args);
+
+		// convertAndRound($price, $precision, ...)
+		$this->assertSame(4, $resultArgs[1]);
+	}
+
+	public function testAroundRoundUsesModulePrecisionWhenEnabled(): void
+	{
+		$plugin   = $this->createPlugin(true, 3);
+		$price    = 10.9876;
+
+		$proceed = function ($price, ...$args) {
+			// emulate core: round($price, $precision)
+			$precision = $args[0] ?? 2;
+			return round($price, $precision);
+		};
+
+		$result = $plugin->aroundRound(
+			$this->priceCurrencyMock,
+			$proceed,
+			$price
+		);
+
+		$this->assertSame(
+			round($price, 3),
+			$result,
+			'When enabled, plugin should use module precision for rounding'
+		);
+	}
+
+	public function testAroundRoundDelegatesToProceedWhenDisabled(): void
+	{
+		$plugin   = $this->createPlugin(false, 3);
+		$price    = 10.9876;
+
+		$proceed = function ($price, ...$args) {
+			// emulate core round with explicit precision
+			$precision = $args[0] ?? 4;
+			return round($price, $precision);
+		};
+
+		$result = $plugin->aroundRound(
+			$this->priceCurrencyMock,
+			$proceed,
+			$price,
+			4
+		);
+
+		$this->assertSame(
+			round($price, 4),
+			$result,
+			'When disabled, plugin should call proceed with original args'
+		);
+	}
 }

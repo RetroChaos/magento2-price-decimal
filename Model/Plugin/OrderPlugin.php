@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lillik\PriceDecimal\Model\Plugin;
+namespace RetroChaos\PriceDecimal\Model\Plugin;
 
 class OrderPlugin extends PriceFormatPluginAbstract
 {

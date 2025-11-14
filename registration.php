@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
-\Magento\Framework\Component\ComponentRegistrar::register(
-    \Magento\Framework\Component\ComponentRegistrar::MODULE,
-    'Lillik_PriceDecimal',
+use Magento\Framework\Component\ComponentRegistrar;
+
+ComponentRegistrar::register(
+    ComponentRegistrar::MODULE,
+    'RetroChaos_PriceDecimal',
     __DIR__
 );

@@ -1,18 +1,17 @@
 <?php
-
 declare(strict_types=1);
 
-namespace Lillik\PriceDecimal\Model;
+namespace RetroChaos\PriceDecimal\Model;
+
+use Magento\Framework\App\Config\ScopeConfigInterface;
 
 interface ConfigInterface
 {
-    /**
-     * @return \Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    public function getScopeConfig();
+	public function getScopeConfig(): ScopeConfigInterface;
 
-    /**
-     * @return mixed
-     */
-    public function isEnable();
+	public function isEnable(): bool;
+
+	public function canShowPriceDecimal(): bool;
+
+	public function getPricePrecision(): int;
 }

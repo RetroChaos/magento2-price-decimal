@@ -2,22 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Lillik\PriceDecimal\Model\Plugin\Local;
+namespace RetroChaos\PriceDecimal\Model\Plugin\Local;
 
-use Lillik\PriceDecimal\Model\Plugin\PriceFormatPluginAbstract;
+use RetroChaos\PriceDecimal\Model\Plugin\PriceFormatPluginAbstract;
 
 class Format extends PriceFormatPluginAbstract
 {
 
     /**
-     * {@inheritdoc}
-     *
      * @param $subject
      * @param $result
      *
      * @return mixed
      */
-    public function afterGetPriceFormat($subject, $result)
+    public function afterGetPriceFormat($subject, $result): mixed
     {
         $precision = $this->getPricePrecision();
 
