@@ -20,8 +20,6 @@ class Currency extends MagentoCurrency implements CurrencyInterface
 	) {
 		parent::__construct($appCache, $options, $locale);
 
-		// DI will normally inject this; fallback keeps it from exploding
-		$this->moduleConfig = $moduleConfig ?? ObjectManager::getInstance()
-			->get(ConfigInterface::class);
+		$this->moduleConfig = $moduleConfig ?? ObjectManager::getInstance()->get(ConfigInterface::class);
 	}
 }

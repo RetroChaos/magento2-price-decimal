@@ -27,27 +27,24 @@ class Config implements ConfigInterface
 
 	public function isEnable(): bool
 	{
-		// keep behaviour you already had, just cast to bool
-		return (bool) $this->getScopeConfig()->isSetFlag(
+		return $this->getScopeConfig()->isSetFlag(
 			'catalog_price_decimal/general/active'
 		);
 	}
 
 	public function canShowPriceDecimal(): bool
 	{
-		return (bool) $this->getScopeConfig()->isSetFlag(
+		return $this->getScopeConfig()->isSetFlag(
 			self::XML_PATH_CAN_SHOW_PRICE_DECIMAL
 		);
 	}
 
 	public function getPricePrecision(): int
 	{
-		$value = (string) $this->getScopeConfig()->getValue(
+		$value = (string)$this->getScopeConfig()->getValue(
 			self::XML_PATH_PRICE_PRECISION
 		);
-
-		// normalise & guard against weird config entries
-		$precision = (int) $value;
+		$precision = (int)$value;
 
 		return max($precision, 0);
 	}
